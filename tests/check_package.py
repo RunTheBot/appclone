@@ -67,6 +67,13 @@ def test_lifecycle_entrypoints():
         assert "build.py --self-check" in (ROOT / ".github/workflows" / workflow).read_text()
 
 
+def test_release_workflow_handles_missing_signing_credentials():
+    release = (ROOT / ".github/workflows/release.yml").read_text()
+    assert "Skip signed release when signing credentials are unavailable" in release
+    assert "if: ${{ secrets.ANDROID_KEYSTORE_BASE64 == '' ||" in release
+    assert "if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' &&" in release
+
+
 def test_boot_wiring():
     android = "{http://schemas.android.com/apk/res/android}"
     manifest = ET.parse(ROOT / "AndroidManifest.xml").getroot()

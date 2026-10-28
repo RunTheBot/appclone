@@ -45,7 +45,11 @@ jobs:
         run: |
           python3 tests/check_package.py
           python3 -m unittest discover -s tests/build_tests -v
+      - name: Skip signed release when signing credentials are unavailable
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 == '' || secrets.ANDROID_KEYSTORE_PASSWORD == '' || secrets.ANDROID_KEY_PASSWORD == '' || secrets.ANDROID_KEY_ALIAS == '' || vars.ANDROID_SIGNING_CERT_SHA256 == '' }}
+        run: echo 'Skipping signed release: missing release environment signing secrets/vars.'
       - name: Build with the permanent key and verify the pinned certificate
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && vars.ANDROID_SIGNING_CERT_SHA256 != '' }}
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           SIGNING_KEYSTORE: ${{ runner.temp }}/appclone-release.keystore
@@ -64,6 +68,7 @@ jobs:
           python3 build.py --self-check
           python3 build.py --release
       - name: Replace the stable GitHub release for this version
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && vars.ANDROID_SIGNING_CERT_SHA256 != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
